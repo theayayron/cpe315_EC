@@ -8,10 +8,10 @@ $(MAIN) : $(OBJS) lab6.h
 	$(CC) $(CFLAGS) -o $(MAIN) $(OBJS)
 
 lab6.o : lab6.c lab6.h
-	$(CC) $(CFLAGS) -c lab6.c
+	$(CC) $(CFLAGS) -c -g lab6.c
 
 lab6a.o : lab6a.c lab6.h
-	$(CC) $(CFLAGS) -c lab6a.c
+	$(CC) $(CFLAGS) -c -g lab6a.c
 
 clean :
 	rm *.o $(MAIN) core

@@ -6,17 +6,28 @@
 
 float float_add(float a, float b) {
     INTFLOAT x, y, result;
-    float sum = 0;
-    unsigned int *sum_ptr = &sum;
+    int bit_sum = 0;
+    float *sum;
     
     /* extract two's compliment components of the two given floats */
     extract_float(a, &x);
     extract_float(b, &y);
+    printf("%X, %X\n", x.exponent, x.fraction);
+    printf("%X, %X\n", y.exponent, y.fraction);
+
 
     if(x.exponent > y.exponent) {
 	/* shift y fraction right and increase expononent until equal */
+	while(x.exponent != y.exponent) {
+	    y.fraction = y.fraction >> 1;
+	    y.exponent = y.exponent + 1;
+	}
     } else if(x.exponent < y.exponent) {
 	/* same as above but for x */
+	while(x.exponent != y.exponent) {
+	    x.fraction = x.fraction >> 1;
+	    x.exponent = x.exponent + 1;
+	}
     } 
     
     if(x.exponent == y.exponent) {
@@ -25,16 +36,25 @@ float float_add(float a, float b) {
 	printf("Error: exponents not equal\n");
     }
 
-    a.fraction = a.fraction >> 1;
-    b.fraction = b.fraction >> 1;
-    result.fraction = a.fraction + b.fraction;
+    x.fraction = x.fraction >> 1;
+    y.fraction = y.fraction >> 1;
+    result.fraction = x.fraction + y.fraction;
 
     /* normalize result left shifting and decrementing exponent */
+    if(result.fraction != 0) {
+	while(
+	      /* check if signed bit and adjacent are eqaual */
+	      (result.fraction & 0xC0000000 == 0xC0000000) ||
+	      (result.fraction & 0xC0000000 == 0)) {
+		result.fraction = result.fraction << 1;
+		result.exponent--;
+	}
+    }
 
     if(result.fraction == 0) {
 	return 0;
     } else if (result.fraction < 0) {
-	float_result |= 0x80000000;
+	bit_sum |= 0x80000000;
 	if(result.fraction == 0x80000000) {
 	    result.fraction = result.fraction >> 1;
 	    result.exponent++;
@@ -42,11 +62,16 @@ float float_add(float a, float b) {
 	}
     }
 
-    /* copy fraction field from bits after hidden 1 */
-    result.exponent += 126;
-    /* move fields into correct positions */
+    printf("E: %d, F: %X\n", result.exponent, result.fraction);
 
-    return 0;
+    /* moving result into IEEE format */
+    result.exponent += 126;
+    result.fraction = result.fraction >> 8; /* only 8 for hidden 1 */
+    result.exponent = result.exponent << 23;
+    bit_sum |= result.exponent;
+    bit_sum != result.fraction;
+
+    return *((float*)&bit_sum);
 }
 
 float hardware_float_add(float a, float b) {
@@ -82,4 +107,3 @@ void extract_float(float f, INTFLOAT_PTR xp)
 
     return;
 }
-

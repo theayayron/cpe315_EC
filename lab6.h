@@ -10,4 +10,5 @@ typedef struct _intfloat
 /* function definition for extract_float */
 
 void extract_float(float, INTFLOAT_PTR);
+float float_add(float, float);
 
